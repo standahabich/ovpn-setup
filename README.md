@@ -1,77 +1,148 @@
-🔧 1) Skript vytvoří vše, co je potřeba pro migraci
-Tvoje logika:
+README.md — MikroTik OpenVPN Automation Script
+Overview
+Tento skript automatizuje kompletní přípravu OpenVPN serveru na MikroTiku včetně:
 
-vytvoří CA (pokud není)
+generování CA certifikátu
 
-vytvoří server cert (pokud není)
+generování serverového certifikátu
 
-podepíše
+generování klientských certifikátů
 
-zkontroluje private-key (pokud existuje)
+exportu .p12 záloh pro migraci
 
-vyexportuje CA i server cert jako .p12 → kompletní záloha
+exportu .ovpn konfiguračních souborů pro klienty
 
-vyexportuje klientské certy + klíče
+vytvoření/úpravy IP poolu
 
-vyexportuje .ovpn pro každého klienta
+vytvoření/úpravy PPP profilu
 
-To znamená:
+vytvoření/úpravy OVPN serveru
 
-✔ Máš kompletní PKI zálohu
-✔ Máš kompletní klientské konfigurace
-✔ Máš vše, co potřebuješ pro obnovu serveru na jiném routeru
-A to je přesně to, co jsi chtěl.
+vytvoření/úpravy PPP secretů
 
-🛡️ 2) Skript už nic nepřepisuje, pokud to existuje
-Tohle je klíčové — a ty to máš správně:
+Skript je idempotentní — pokud něco existuje, nepřepisuje to, pouze opraví kritické parametry (certifikát, IP pool, profil).
+Je navržen tak, aby:
+
+jednorázově vytvořil vše potřebné
+
+vyexportoval zálohy
+
+vyexportoval klienty
+
+a poté už konfiguraci serveru nepřepisoval
+
+Díky tomu je možné server dále ručně upravit bez rizika, že skript změny zničí.
+
+Features
+✔ Automatická PKI struktura
+Skript používá jasnou a škálovatelnou naming konvenci:
+
+Typ	Formát CN
+CA	ovpn__ca
+Server	ovpn__server
+Client	ovpn__client_
+Tato struktura umožňuje:
+
+mít více OpenVPN serverů na jednom routeru
+
+mít oddělené certifikáty pro každý server
+
+snadno filtrovat certifikáty podle prefixu
+
+přehledné logování a správu
+
+What the script does
+🔐 Certifikáty
+vytvoří CA certifikát (pokud neexistuje)
+
+vytvoří server certifikát (pokud neexistuje)
+
+vytvoří klientské certifikáty (pokud neexistují)
+
+podepíše je CA
+
+opraví názvy importovaných certifikátů (pokud byly importovány ručně)
+
+ověří, že CA i server certifikát mají privátní klíč
+
+exportuje CA + server certifikát jako .p12 (pro migraci)
+
+exportuje klientské certy + klíče jako PEM
+
+🧩 OpenVPN server
+vytvoří nebo upraví IP pool
+
+vytvoří nebo upraví PPP profil
+
+vytvoří nebo upraví OVPN server (certifikát, cipher, require-client-certificate)
+
+vytvoří nebo upraví PPP secret pro každého klienta
+
+📦 Export klientů
+Pro každého klienta skript:
+
+exportuje certifikát a klíč
+
+vytvoří .ovpn konfigurační soubor
+
+pojmenuje ho jako:
+
+Kód
+<serverAddress>_<clientName>.ovpn
+uklidí dočasné soubory
+
+What the script does NOT do
+nepřepisuje ruční nastavení OVPN serveru (port, auth, TLS-auth, push-routes, DNS, atd.)
+
+nepřegenerovává existující certifikáty
+
+nemaže existující klienty
+
+nemění nic, co není explicitně v jeho správě
+
+To znamená, že po prvním spuštění můžeš server libovolně doladit ručně a skript ti to už nikdy nepřepíše.
+
+Migration workflow
+Spusť skript na původním routeru
+
+Získej exportované .p12 soubory:
 
 CA
-rsc
-if exists → skip + check private-key
-SERVER cert
-rsc
-if exists → skip + check private-key
-IP pool
-rsc
-if exists → update ranges
-PPP profile
-rsc
-if exists → update addresses
-OVPN server
-rsc
-if exists → update cert/profile/cipher
-Klientské certy
-rsc
-if exists → skip
-PPP secret
-rsc
-if exists → update password/profile
-To znamená:
 
-✔ Skript je idempotentní
-✔ Skript nic nezničí
-✔ Skript nic nepřegeneruje
-✔ Skript jen opraví to, co má být správně
-A to je přesně to, co chceš u produkčního skriptu.
+server cert
 
-📦 3) Ruční donastavení OVPN serveru ti skript nepřepíše
-Ano — tohle je důležité.
+Získej .ovpn soubory pro klienty
 
-Skript nastavuje jen:
+Na novém routeru importuj .p12
 
-certifikát
+Spusť skript znovu — automaticky:
 
-require-client-certificate=yes
+opraví názvy certifikátů
 
-cipher=aes256-cbc
+ověří private-key
 
-default-profile
+nastaví certifikát na OVPN server
 
-A to je vše.
+vytvoří pool, profil, PPP secrets
 
-Všechno ostatní (port, mode, auth, keepalive, netmask, IPv6, TLS-auth, push-routes, DNS, …) si můžeš nastavit ručně a skript ti to už nikdy nepřepíše.
+Ručně nastav port, TLS-auth, push-routes, atd.
 
-To je přesně ta rovnováha:
+Hotovo — klienti se připojí bez změny konfigurace.
 
-✔ automatizace tam, kde to má být
-✔ manuální nastavení tam, kde je to individuální
+Requirements
+RouterOS 7.x
+
+MikroTik s podporou OpenVPN serveru
+
+SSH/WinBox pro spuštění skriptu
+
+.p12 exporty pro migraci (pokud přenášíš server)
+
+Notes
+Skript obsahuje ochranu proti paralelnímu běhu
+
+Všechny operace jsou idempotentní
+
+Naming konvence je navržena pro multi-server prostředí
+
+Exporty jsou ukládány do /file
