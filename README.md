@@ -13,8 +13,8 @@ Tento skript automatizuje kompletní přípravu OpenVPN serveru na MikroTiku vč
 - vytvoření/úpravy OVPN serveru
 - vytvoření/úpravy PPP secretů
 
-Skript je idempotentní — pokud něco existuje, nepřepisuje to, pouze opraví kritické parametry (certifikát, IP pool, profil).  
-Je navržen tak, aby:
+Skript je navržen tak, aby bylo **bezpečné ho spouštět opakovaně** — pokud něco existuje, nepřepisuje to, pouze doplní nebo opraví to, co je potřeba (např. certifikát, IP pool, profil).  
+Je určený k tomu, aby:
 
 - jednorázově vytvořil vše potřebné
 - vyexportoval zálohy
@@ -157,12 +157,12 @@ Tyto soubory si stáhni a bezpečně ulož.
 
 ## Re-running the script
 
-Skript je **idempotentní**, takže:
+Skript je navržen tak, aby bylo **bezpečné ho spouštět opakovaně**:
 
 - existující certifikáty nepřepíše
 - existující klienty nepřegeneruje
 - OVPN server nepřemaže
-- pouze opraví kritické parametry (certifikát, pool, profil)
+- pouze doplní nebo opraví to, co je potřeba (certifikát, pool, profil)
 
 To znamená, že:
 
@@ -174,13 +174,13 @@ To znamená, že:
 
 ## Migration to a new router
 
-1. Spusť skript na starém routeru
-2. Stáhni `.p12` soubory (CA + server cert)
-3. Stáhni `.ovpn` soubory pro klienty
-4. Na novém routeru importuj `.p12`
-5. Vlož skript a spusť ho
-6. Skript automaticky opraví názvy certifikátů a nastaví server
-7. Ručně nastav port, TLS-auth, push-routes, atd.
+1. Spusť skript na starém routeru  
+2. Stáhni `.p12` soubory (CA + server cert)  
+3. Stáhni `.ovpn` soubory pro klienty  
+4. Na novém routeru importuj `.p12`  
+5. Vlož skript a spusť ho  
+6. Skript automaticky opraví názvy certifikátů a nastaví server  
+7. Ručně nastav port, TLS-auth, push-routes, atd.  
 
 Klienti se připojí bez změny konfigurace.
 
@@ -196,6 +196,6 @@ Klienti se připojí bez změny konfigurace.
 
 ## Notes
 - Skript obsahuje ochranu proti paralelnímu běhu
-- Všechny operace jsou idempotentní
+- Je bezpečné ho spouštět opakovaně
 - Naming konvence je navržena pro multi-server prostředí
 - Exporty jsou ukládány do `/file`
