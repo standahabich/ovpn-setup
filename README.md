@@ -12,6 +12,7 @@ Tento skript automatizuje kompletní přípravu OpenVPN serveru na MikroTiku vč
 - vytvoření/úpravy PPP profilu
 - vytvoření/úpravy OVPN serveru
 - vytvoření/úpravy PPP secretů
+- průběh a výsledek generování směrován do logu
 
 Skript je navržen tak, aby bylo **bezpečné ho spouštět opakovaně** — pokud něco existuje, nepřepisuje to, pouze doplní nebo opraví to, co je potřeba (např. certifikát, IP pool, profil).  
 Je určený k tomu, aby:
