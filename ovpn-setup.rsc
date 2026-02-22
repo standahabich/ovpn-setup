@@ -21,7 +21,7 @@
     :error "OVPN: script instance already running"
 }
 
-/log error "OVPN: start generation, version 1.00"
+/log error "OVPN: start generation, version 1.01"
 
 # CERT FIX NAME - imported key
 /certificate set [find where common-name=$caNameCert] name=$caNameCert trusted=yes
